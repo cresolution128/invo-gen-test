@@ -1,0 +1,130 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Company {
+  id        String   @id @default(cuid())
+  name      String   @default("")
+  street    String   @default("")
+  zip       String   @default("")
+  city      String   @default("")
+  country   String   @default("")
+  email     String   @default("")
+  phone     String   @default("")
+  website   String   @default("")
+  taxId     String   @default("")
+  bankName  String   @default("")
+  iban      String   @default("")
+  bic       String   @default("")
+  logoUrl   String   @default("")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Customer {
+  id        String   @id @default(cuid())
+  name      String
+  company   String   @default("")
+  street    String   @default("")
+  zip       String   @default("")
+  city      String   @default("")
+  country   String   @default("")
+  email     String   @default("")
+  phone     String   @default("")
+  notes     String   @default("")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  quotes    Quote[]
+  invoices  Invoice[]
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  name        String
+  description String   @default("")
+  unit        String   @default("pcs")
+  price       Float    @default(0)
+  taxRate     Float    @default(19)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Quote {
+  id          String      @id @default(cuid())
+  number      String      @unique
+  customerId  String
+  customer    Customer    @relation(fields: [customerId], references: [id])
+  status      String      @default("draft")
+  subject     String      @default("")
+  notes       String      @default("")
+  validUntil  DateTime?
+  subtotal    Float       @default(0)
+  taxTotal    Float       @default(0)
+  total       Float       @default(0)
+  items       QuoteItem[]
+  invoiceId   String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+model QuoteItem {
+  id          String @id @default(cuid())
+  quoteId     String
+  quote       Quote  @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+  position    Int    @default(0)
+  name        String
+  description String @default("")
+  quantity    Float  @default(1)
+  unit        String @default("pcs")
+  unitPrice   Float  @default(0)
+  taxRate     Float  @default(19)
+  total       Float  @default(0)
+}
+
+model Invoice {
+  id          String        @id @default(cuid())
+  number      String        @unique
+  customerId  String
+  customer    Customer      @relation(fields: [customerId], references: [id])
+  status      String        @default("draft")
+  subject     String        @default("")
+  notes       String        @default("")
+  dueDate     DateTime?
+  subtotal    Float         @default(0)
+  taxTotal    Float         @default(0)
+  total       Float         @default(0)
+  items       InvoiceItem[]
+  quoteId     String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+model InvoiceItem {
+  id          String  @id @default(cuid())
+  invoiceId   String
+  invoice     Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  position    Int     @default(0)
+  name        String
+  description String  @default("")
+  quantity    Float   @default(1)
+  unit        String  @default("pcs")
+  unitPrice   Float   @default(0)
+  taxRate     Float   @default(19)
+  total       Float   @default(0)
+}
+
+model Settings {
+  id              String @id @default("default")
+  quotePrefix     String @default("AG")
+  quoteCounter    Int    @default(0)
+  invoicePrefix   String @default("RE")
+  invoiceCounter  Int    @default(0)
+  defaultTaxRate  Float  @default(19)
+  currency        String @default("EUR")
+  paymentTermDays Int    @default(14)
+}
